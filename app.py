@@ -59,73 +59,127 @@
 #     except Exception as e:
 #         st.error(f"Failed to process file: {e}")
 
+# import streamlit as st
+# import pandas as pd
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+
+# st.set_page_config(layout="wide")
+
+# st.title("📊 Test Plan Results for NV48_XTX_XT.xlsx")
+# st.markdown("**[AMD Official Use Only - AMD Internal Distribution Only]**")
+
+# uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
+
+# if uploaded_file:
+#     df = pd.read_excel(uploaded_file, sheet_name="Test Results")
+    
+#     st.subheader("Sheet: Test Results")
+#     st.markdown("### 🟢 Pie Charts for each tag in Sheet: Test Results")
+
+#     tags = df['RequirementName'].dropna().unique()
+
+#     for i in range(0, len(tags), 3):
+#         cols = st.columns(3)
+#         for j in range(3):
+#             if i + j < len(tags):
+#                 tag = tags[i + j]
+#                 tag_df = df[df['RequirementName'] == tag]
+#                 status_counts = tag_df['Status'].value_counts()
+
+#                 with cols[j]:
+#                     st.markdown(f"**Status Distribution for Tag `{tag}`**")
+#                     fig, ax = plt.subplots()
+#                     ax.pie(status_counts, labels=status_counts.index, autopct='%1.1f%%', colors=['lightgreen', 'lightcoral', 'orange', 'gold'])
+#                     ax.axis('equal')
+#                     st.pyplot(fig)
+
+#     st.markdown("---")
+#     st.markdown("### 📊 Bar Charts for each tag in Sheet: Test Results")
+
+#     for i in range(0, len(tags), 3):
+#         cols = st.columns(3)
+#         for j in range(3):
+#             if i + j < len(tags):
+#                 tag = tags[i + j]
+#                 tag_df = df[df['RequirementName'] == tag]
+#                 status_counts = tag_df['Status'].value_counts()
+
+#                 with cols[j]:
+#                     st.markdown(f"**Status Distribution for Tag `{tag}`**")
+#                     fig, ax = plt.subplots()
+#                     sns.barplot(x=status_counts.index, y=status_counts.values, ax=ax, palette=['lightgreen', 'lightcoral', 'orange', 'gold'])
+#                     ax.set_ylabel("Frequency")
+#                     st.pyplot(fig)
+
+#     st.markdown("---")
+#     st.markdown("### 📋 Data Tables per Tag")
+
+#     for tag in tags:
+#         tag_df = df[df['RequirementName'] == tag]
+#         status_counts = tag_df['Status'].value_counts()
+#         total = status_counts.sum()
+
+#         table_df = pd.DataFrame({
+#             "Status": status_counts.index,
+#             "Count": status_counts.values,
+#             "Percentage": [f"{(count/total)*100:.2f}%" for count in status_counts.values]
+#         })
+
+#         st.markdown(f"**Data Table for Tag: {tag}**")
+#         st.table(table_df)
+
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="centered")
 
-st.title("📊 Test Plan Results for NV48_XTX_XT.xlsx")
-st.markdown("**[AMD Official Use Only - AMD Internal Distribution Only]**")
+st.title("📊 Test Results Analysis Parser")
+st.markdown("**Select a tag to visualize results**")
 
-uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
+uploaded_file = st.file_uploader("📁 Upload Excel File", type=["xlsx"])
 
 if uploaded_file:
-    df = pd.read_excel(uploaded_file, sheet_name="Test Results")
-    
-    st.subheader("Sheet: Test Results")
-    st.markdown("### 🟢 Pie Charts for each tag in Sheet: Test Results")
+    try:
+        df = pd.read_excel(uploaded_file, sheet_name="Test Results")
+    except Exception as e:
+        st.error(f"Error reading file: {e}")
+    else:
+        if 'RequirementName' not in df.columns or 'Status' not in df.columns:
+            st.error("Excel file must contain 'RequirementName' and 'Status' columns.")
+        else:
+            tags = sorted(df['RequirementName'].dropna().unique())
 
-    tags = df['RequirementName'].dropna().unique()
+            selected_tag = st.selectbox("🔍 Choose a tag (RequirementName)", tags)
 
-    for i in range(0, len(tags), 3):
-        cols = st.columns(3)
-        for j in range(3):
-            if i + j < len(tags):
-                tag = tags[i + j]
-                tag_df = df[df['RequirementName'] == tag]
-                status_counts = tag_df['Status'].value_counts()
+            tag_df = df[df['RequirementName'] == selected_tag]
+            status_counts = tag_df['Status'].value_counts()
+            total = status_counts.sum()
 
-                with cols[j]:
-                    st.markdown(f"**Status Distribution for Tag `{tag}`**")
-                    fig, ax = plt.subplots()
-                    ax.pie(status_counts, labels=status_counts.index, autopct='%1.1f%%', colors=['lightgreen', 'lightcoral', 'orange', 'gold'])
-                    ax.axis('equal')
-                    st.pyplot(fig)
+            st.markdown(f"### 🥧 Pie Chart: Status Distribution for `{selected_tag}`")
+            fig1, ax1 = plt.subplots()
+            ax1.pie(status_counts, labels=status_counts.index, autopct='%1.1f%%', colors=['lightgreen', 'lightcoral', 'orange', 'gold'])
+            ax1.axis('equal')
+            st.pyplot(fig1)
 
-    st.markdown("---")
-    st.markdown("### 📊 Bar Charts for each tag in Sheet: Test Results")
+            st.markdown(f"### 📊 Bar Chart: Status Count for `{selected_tag}`")
+            fig2, ax2 = plt.subplots()
+            ax2.bar(status_counts.index, status_counts.values, color=['lightgreen', 'lightcoral', 'orange', 'gold'])
+            ax2.set_ylabel("Count")
+            ax2.set_xlabel("Status")
+            ax2.set_title("Status Count")
+            st.pyplot(fig2)
 
-    for i in range(0, len(tags), 3):
-        cols = st.columns(3)
-        for j in range(3):
-            if i + j < len(tags):
-                tag = tags[i + j]
-                tag_df = df[df['RequirementName'] == tag]
-                status_counts = tag_df['Status'].value_counts()
+            st.markdown("### 📋 Summary Table")
+            table_df = pd.DataFrame({
+                "Status": status_counts.index,
+                "Count": status_counts.values,
+                "Percentage": [f"{(count / total) * 100:.2f}%" for count in status_counts.values]
+            })
+            st.table(table_df)
 
-                with cols[j]:
-                    st.markdown(f"**Status Distribution for Tag `{tag}`**")
-                    fig, ax = plt.subplots()
-                    sns.barplot(x=status_counts.index, y=status_counts.values, ax=ax, palette=['lightgreen', 'lightcoral', 'orange', 'gold'])
-                    ax.set_ylabel("Frequency")
-                    st.pyplot(fig)
-
-    st.markdown("---")
-    st.markdown("### 📋 Data Tables per Tag")
-
-    for tag in tags:
-        tag_df = df[df['RequirementName'] == tag]
-        status_counts = tag_df['Status'].value_counts()
-        total = status_counts.sum()
-
-        table_df = pd.DataFrame({
-            "Status": status_counts.index,
-            "Count": status_counts.values,
-            "Percentage": [f"{(count/total)*100:.2f}%" for count in status_counts.values]
-        })
-
-        st.markdown(f"**Data Table for Tag: {tag}**")
-        st.table(table_df)
+else:
+    st.info("Please upload an Excel file with a 'Test Results' sheet.")
 
