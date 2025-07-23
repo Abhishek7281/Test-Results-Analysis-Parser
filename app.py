@@ -130,14 +130,67 @@
 #         st.table(table_df)
 
 
+# import streamlit as st
+# import pandas as pd
+# import matplotlib.pyplot as plt
+
+# st.set_page_config(layout="centered")
+
+# st.title("📊 Test Results Analysis Parser")
+# st.markdown("**Select a tag to visualize results**")
+
+# uploaded_file = st.file_uploader("📁 Upload Excel File", type=["xlsx"])
+
+# if uploaded_file:
+#     try:
+#         df = pd.read_excel(uploaded_file, sheet_name="Test Results")
+#     except Exception as e:
+#         st.error(f"Error reading file: {e}")
+#     else:
+#         if 'RequirementName' not in df.columns or 'Status' not in df.columns:
+#             st.error("Excel file must contain 'RequirementName' and 'Status' columns.")
+#         else:
+#             tags = sorted(df['RequirementName'].dropna().unique())
+
+#             selected_tag = st.selectbox("🔍 Choose a tag (RequirementName)", tags)
+
+#             tag_df = df[df['RequirementName'] == selected_tag]
+#             status_counts = tag_df['Status'].value_counts()
+#             total = status_counts.sum()
+
+#             st.markdown(f"### 🥧 Pie Chart: Status Distribution for `{selected_tag}`")
+#             fig1, ax1 = plt.subplots()
+#             ax1.pie(status_counts, labels=status_counts.index, autopct='%1.1f%%', colors=['lightgreen', 'lightcoral', 'orange', 'gold'])
+#             ax1.axis('equal')
+#             st.pyplot(fig1)
+
+#             st.markdown(f"### 📊 Bar Chart: Status Count for `{selected_tag}`")
+#             fig2, ax2 = plt.subplots()
+#             ax2.bar(status_counts.index, status_counts.values, color=['lightgreen', 'lightcoral', 'orange', 'gold'])
+#             ax2.set_ylabel("Count")
+#             ax2.set_xlabel("Status")
+#             ax2.set_title("Status Count")
+#             st.pyplot(fig2)
+
+#             st.markdown("### 📋 Summary Table")
+#             table_df = pd.DataFrame({
+#                 "Status": status_counts.index,
+#                 "Count": status_counts.values,
+#                 "Percentage": [f"{(count / total) * 100:.2f}%" for count in status_counts.values]
+#             })
+#             st.table(table_df)
+
+# else:
+#     st.info("Please upload an Excel file with a 'Test Results' sheet.")
+
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
 st.set_page_config(layout="centered")
-
 st.title("📊 Test Results Analysis Parser")
-st.markdown("**Select a tag to visualize results**")
+st.markdown("**Upload a Test Plan Excel and select a tag to view status charts and defect summary.**")
 
 uploaded_file = st.file_uploader("📁 Upload Excel File", type=["xlsx"])
 
@@ -145,13 +198,12 @@ if uploaded_file:
     try:
         df = pd.read_excel(uploaded_file, sheet_name="Test Results")
     except Exception as e:
-        st.error(f"Error reading file: {e}")
+        st.error(f"❌ Error reading Excel file: {e}")
     else:
         if 'RequirementName' not in df.columns or 'Status' not in df.columns:
-            st.error("Excel file must contain 'RequirementName' and 'Status' columns.")
+            st.error("Excel must contain columns: `RequirementName` and `Status`.")
         else:
             tags = sorted(df['RequirementName'].dropna().unique())
-
             selected_tag = st.selectbox("🔍 Choose a tag (RequirementName)", tags)
 
             tag_df = df[df['RequirementName'] == selected_tag]
@@ -160,13 +212,22 @@ if uploaded_file:
 
             st.markdown(f"### 🥧 Pie Chart: Status Distribution for `{selected_tag}`")
             fig1, ax1 = plt.subplots()
-            ax1.pie(status_counts, labels=status_counts.index, autopct='%1.1f%%', colors=['lightgreen', 'lightcoral', 'orange', 'gold'])
+            ax1.pie(
+                status_counts,
+                labels=status_counts.index,
+                autopct='%1.1f%%',
+                colors=['lightgreen', 'lightcoral', 'orange', 'gold', 'lightblue']
+            )
             ax1.axis('equal')
             st.pyplot(fig1)
 
             st.markdown(f"### 📊 Bar Chart: Status Count for `{selected_tag}`")
             fig2, ax2 = plt.subplots()
-            ax2.bar(status_counts.index, status_counts.values, color=['lightgreen', 'lightcoral', 'orange', 'gold'])
+            ax2.bar(
+                status_counts.index,
+                status_counts.values,
+                color=['lightgreen' if s.lower() == 'passed' else 'lightcoral' for s in status_counts.index]
+            )
             ax2.set_ylabel("Count")
             ax2.set_xlabel("Status")
             ax2.set_title("Status Count")
@@ -180,6 +241,21 @@ if uploaded_file:
             })
             st.table(table_df)
 
-else:
-    st.info("Please upload an Excel file with a 'Test Results' sheet.")
+            # 🔴 Defects Section (show only if defects found)
+            defect_statuses = ["Failed", "Blocked", "Not Completed", "Error"]
+            defect_df = tag_df[tag_df['Status'].isin(defect_statuses)]
 
+            if not defect_df.empty:
+                st.markdown("### 🔴 Defect Summary")
+                defect_counts = defect_df['Status'].value_counts()
+                defect_table = pd.DataFrame({
+                    "Defect Status": defect_counts.index,
+                    "Count": defect_counts.values,
+                    "Percentage": [f"{(count / total) * 100:.2f}%" for count in defect_counts.values]
+                })
+                st.table(defect_table)
+            else:
+                st.success("✅ No defects found in the selected tag.")
+
+else:
+    st.info("📤 Please upload an Excel file with a 'Test Results' sheet.")
