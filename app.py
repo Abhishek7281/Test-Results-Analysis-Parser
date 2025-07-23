@@ -348,232 +348,232 @@
 #     st.info("📤 Please upload an Excel file with a 'Test Results' sheet.")
 
 # Final Streamlit Code (PDF Save Feature Included):
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-from io import BytesIO
-import os
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib import colors
-import zipfile
+# import streamlit as st
+# import pandas as pd
+# import matplotlib.pyplot as plt
+# from io import BytesIO
+# import os
+# from reportlab.lib.pagesizes import A4
+# from reportlab.pdfgen import canvas
+# from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+# from reportlab.lib.styles import getSampleStyleSheet
+# from reportlab.lib import colors
+# import zipfile
 
-st.set_page_config(layout="centered")
-st.title("📊 Test Results Analysis Parser (Multi-Tag with PDF Export)")
-st.markdown("**Upload Excel and select tags to view and export summaries.**")
+# st.set_page_config(layout="centered")
+# st.title("📊 Test Results Analysis Parser (Multi-Tag with PDF Export)")
+# st.markdown("**Upload Excel and select tags to view and export summaries.**")
 
-uploaded_file = st.file_uploader("📁 Upload Excel File", type=["xlsx"])
+# uploaded_file = st.file_uploader("📁 Upload Excel File", type=["xlsx"])
+
+
 
 # def save_pdf(tag, status_counts, total, summary_table_df, defect_table_df, pie_buf, bar_buf):
 #     pdf_buffer = BytesIO()
-#     c = canvas.Canvas(pdf_buffer, pagesize=A4)
-#     width, height = A4
+#     doc = SimpleDocTemplate(pdf_buffer, pagesize=A4)
+#     elements = []
+#     styles = getSampleStyleSheet()
+#     spacer = Spacer(1, 12)
 
 #     # Title
-#     c.setFont("Helvetica-Bold", 14)
-#     c.drawString(50, height - 50, f"Test Summary Report - {tag}")
+#     elements.append(Paragraph(f"<b>Test Summary Report - {tag}</b>", styles['Title']))
+#     elements.append(spacer)
 
-#     # Pie Chart
-#     pie_path = f"{tag}_pie.png"
-#     with open(pie_path, "wb") as f:
-#         f.write(pie_buf.getbuffer())
-#     c.drawImage(pie_path, 50, height - 300, width=200, preserveAspectRatio=True)
+#     # Pie Chart Image
+#     pie_img = Image(pie_buf)
+#     pie_img.drawHeight = 200
+#     pie_img.drawWidth = 200
+#     elements.append(Paragraph("<b>Pie Chart: Status Distribution</b>", styles['Heading3']))
+#     elements.append(pie_img)
+#     elements.append(spacer)
 
-#     # Bar Chart
-#     bar_path = f"{tag}_bar.png"
-#     with open(bar_path, "wb") as f:
-#         f.write(bar_buf.getbuffer())
-#     c.drawImage(bar_path, 300, height - 300, width=200, preserveAspectRatio=True)
+#     # Bar Chart Image
+#     bar_img = Image(bar_buf)
+#     bar_img.drawHeight = 200
+#     bar_img.drawWidth = 200
+#     elements.append(Paragraph("<b>Bar Chart: Status Count</b>", styles['Heading3']))
+#     elements.append(bar_img)
+#     elements.append(spacer)
 
 #     # Summary Table
-#     c.setFont("Helvetica-Bold", 12)
-#     c.drawString(50, height - 320, "Summary Table:")
-#     data = [["Status", "Count", "Percentage"]] + summary_table_df.values.tolist()
-#     t = Table(data, colWidths=[100, 100, 100])
-#     t.setStyle(TableStyle([
-#         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-#         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-#         ('GRID', (0, 0), (-1, -1), 1, colors.black),
-#         ('ALIGN', (0, 0), (-1, -1), 'CENTER')
+#     elements.append(Paragraph("<b>Summary Table:</b>", styles['Heading3']))
+#     table_data = [summary_table_df.columns.tolist()] + summary_table_df.values.tolist()
+#     table = Table(table_data, hAlign='LEFT')
+#     table.setStyle(TableStyle([
+#         ('BACKGROUND', (0,0), (-1,0), colors.grey),
+#         ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+#         ('GRID',(0,0),(-1,-1),1,colors.black),
+#         ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
 #     ]))
-#     t.wrapOn(c, width, height)
-#     t.drawOn(c, 50, height - 400)
+#     elements.append(table)
+#     elements.append(spacer)
 
-#     # Defect Table
+#     # Defect Table (if present)
 #     if not defect_table_df.empty:
-#         c.setFont("Helvetica-Bold", 12)
-#         c.drawString(50, height - 480, "Defect Summary:")
-#         data_def = [["Defect Status", "Count", "Percentage"]] + defect_table_df.values.tolist()
-#         t2 = Table(data_def, colWidths=[100, 100, 100])
-#         t2.setStyle(TableStyle([
-#             ('BACKGROUND', (0, 0), (-1, 0), colors.lightcoral),
-#             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-#             ('GRID', (0, 0), (-1, -1), 1, colors.black),
-#             ('ALIGN', (0, 0), (-1, -1), 'CENTER')
+#         elements.append(Paragraph("<b>Defect Summary:</b>", styles['Heading3']))
+#         defect_data = [defect_table_df.columns.tolist()] + defect_table_df.values.tolist()
+#         defect_table = Table(defect_data, hAlign='LEFT')
+#         defect_table.setStyle(TableStyle([
+#             ('BACKGROUND', (0,0), (-1,0), colors.lightcoral),
+#             ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+#             ('GRID',(0,0),(-1,-1),1,colors.black),
+#             ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
 #         ]))
-#         t2.wrapOn(c, width, height)
-#         t2.drawOn(c, 50, height - 560)
+#         elements.append(defect_table)
 
-#     c.save()
-#     os.remove(pie_path)
-#     os.remove(bar_path)
+#     doc.build(elements)
 #     pdf_buffer.seek(0)
 #     return pdf_buffer
 
-def save_pdf(tag, status_counts, total, summary_table_df, defect_table_df, pie_buf, bar_buf):
-    pdf_buffer = BytesIO()
-    doc = SimpleDocTemplate(pdf_buffer, pagesize=A4)
-    elements = []
-    styles = getSampleStyleSheet()
-    spacer = Spacer(1, 12)
+# if uploaded_file:
+#     try:
+#         df = pd.read_excel(uploaded_file, sheet_name="Test Results")
+#     except Exception as e:
+#         st.error(f"❌ Error reading Excel file: {e}")
+#     else:
+#         if 'RequirementName' not in df.columns or 'Status' not in df.columns:
+#             st.error("Excel must contain columns: `RequirementName` and `Status`.")
+#         else:
+#             tags = sorted(df['RequirementName'].dropna().unique())
+#             selected_tags = st.multiselect("🔍 Choose one or more tags (RequirementName)", tags)
 
-    # Title
-    elements.append(Paragraph(f"<b>Test Summary Report - {tag}</b>", styles['Title']))
-    elements.append(spacer)
+#             pdf_files = []
+#             if selected_tags:
+#                 for selected_tag in selected_tags:
+#                     st.markdown(f"---\n## 📘 Results for: `{selected_tag}`")
 
-    # Pie Chart Image
-    pie_img = Image(pie_buf)
-    pie_img.drawHeight = 200
-    pie_img.drawWidth = 200
-    elements.append(Paragraph("<b>Pie Chart: Status Distribution</b>", styles['Heading3']))
-    elements.append(pie_img)
-    elements.append(spacer)
+#                     tag_df = df[df['RequirementName'] == selected_tag]
+#                     status_counts = tag_df['Status'].value_counts()
+#                     total = status_counts.sum()
 
-    # Bar Chart Image
-    bar_img = Image(bar_buf)
-    bar_img.drawHeight = 200
-    bar_img.drawWidth = 200
-    elements.append(Paragraph("<b>Bar Chart: Status Count</b>", styles['Heading3']))
-    elements.append(bar_img)
-    elements.append(spacer)
+#                     # Pie chart
+#                     fig1, ax1 = plt.subplots()
+#                     ax1.pie(
+#                         status_counts,
+#                         labels=status_counts.index,
+#                         autopct='%1.1f%%',
+#                         colors=['lightgreen', 'lightcoral', 'orange', 'gold', 'lightblue']
+#                     )
+#                     ax1.axis('equal')
+#                     pie_buf = BytesIO()
+#                     plt.savefig(pie_buf, format='png')
+#                     st.pyplot(fig1)
+#                     plt.close(fig1)
 
-    # Summary Table
-    elements.append(Paragraph("<b>Summary Table:</b>", styles['Heading3']))
-    table_data = [summary_table_df.columns.tolist()] + summary_table_df.values.tolist()
-    table = Table(table_data, hAlign='LEFT')
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.grey),
-        ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
-        ('GRID',(0,0),(-1,-1),1,colors.black),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-    ]))
-    elements.append(table)
-    elements.append(spacer)
+#                     # Bar chart
+#                     fig2, ax2 = plt.subplots()
+#                     ax2.bar(
+#                         status_counts.index,
+#                         status_counts.values,
+#                         color=['lightgreen' if s.lower() == 'passed' else 'lightcoral' for s in status_counts.index]
+#                     )
+#                     ax2.set_ylabel("Count")
+#                     ax2.set_xlabel("Status")
+#                     ax2.set_title("Status Count")
+#                     bar_buf = BytesIO()
+#                     plt.savefig(bar_buf, format='png')
+#                     st.pyplot(fig2)
+#                     plt.close(fig2)
 
-    # Defect Table (if present)
-    if not defect_table_df.empty:
-        elements.append(Paragraph("<b>Defect Summary:</b>", styles['Heading3']))
-        defect_data = [defect_table_df.columns.tolist()] + defect_table_df.values.tolist()
-        defect_table = Table(defect_data, hAlign='LEFT')
-        defect_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.lightcoral),
-            ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
-            ('GRID',(0,0),(-1,-1),1,colors.black),
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-        ]))
-        elements.append(defect_table)
+#                     # Summary Table
+#                     summary_table_df = pd.DataFrame({
+#                         "Status": status_counts.index,
+#                         "Count": status_counts.values,
+#                         "Percentage": [f"{(count / total) * 100:.2f}%" for count in status_counts.values]
+#                     })
+#                     st.table(summary_table_df)
 
-    doc.build(elements)
-    pdf_buffer.seek(0)
-    return pdf_buffer
+#                     # Defect Summary
+#                     defect_statuses = ["Failed", "Blocked", "Not Completed", "Error"]
+#                     defect_df = tag_df[tag_df['Status'].isin(defect_statuses)]
+#                     defect_table_df = pd.DataFrame()
+
+#                     if not defect_df.empty:
+#                         st.markdown("### 🔴 Defect Summary")
+#                         defect_counts = defect_df['Status'].value_counts()
+#                         defect_table_df = pd.DataFrame({
+#                             "Defect Status": defect_counts.index,
+#                             "Count": defect_counts.values,
+#                             "Percentage": [f"{(count / total) * 100:.2f}%" for count in defect_counts.values]
+#                         })
+#                         st.table(defect_table_df)
+#                     else:
+#                         st.success("✅ No defects found in this tag.")
+
+#                     # Save to PDF
+#                     pdf_buf = save_pdf(selected_tag, status_counts, total, summary_table_df, defect_table_df, pie_buf, bar_buf)
+#                     pdf_files.append((f"{selected_tag}.pdf", pdf_buf))
+
+#                 # Zip all PDFs
+#                 zip_buf = BytesIO()
+#                 with zipfile.ZipFile(zip_buf, "w") as zipf:
+#                     for filename, filedata in pdf_files:
+#                         zipf.writestr(filename, filedata.getvalue())
+#                 zip_buf.seek(0)
+
+#                 st.download_button(
+#                     label="📥 Download All Summaries as ZIP",
+#                     data=zip_buf,
+#                     file_name="Test_Summaries.zip",
+#                     mime="application/zip"
+#                 )
+#             else:
+#                 st.info("Please select at least one tag to view results.")
+# else:
+#     st.info("📤 Please upload an Excel file with a 'Test Results' sheet.")
+
+
+import streamlit as st
+import pandas as pd
+import os
+from pandasai import SmartDataframe
+from pandasai.llm.openai import OpenAI
+import matplotlib.pyplot as plt
+
+# --- Streamlit UI setup ---
+st.set_page_config(layout="centered")
+st.title("🧠 Test Results Agent (Powered by OpenRouter)")
+st.markdown("Upload a test results Excel file and ask questions in plain English.")
+
+# --- Upload file ---
+uploaded_file = st.file_uploader("📁 Upload Excel File", type=["xlsx"])
 
 if uploaded_file:
     try:
         df = pd.read_excel(uploaded_file, sheet_name="Test Results")
+        st.success("✅ File loaded successfully.")
+        st.dataframe(df.head())
     except Exception as e:
         st.error(f"❌ Error reading Excel file: {e}")
     else:
-        if 'RequirementName' not in df.columns or 'Status' not in df.columns:
-            st.error("Excel must contain columns: `RequirementName` and `Status`.")
-        else:
-            tags = sorted(df['RequirementName'].dropna().unique())
-            selected_tags = st.multiselect("🔍 Choose one or more tags (RequirementName)", tags)
+        # --- Prompt box ---
+        prompt = st.text_area("💬 Ask a question about the data:",
+                              placeholder="Example: Show failed test cases by RequirementName")
 
-            pdf_files = []
-            if selected_tags:
-                for selected_tag in selected_tags:
-                    st.markdown(f"---\n## 📘 Results for: `{selected_tag}`")
-
-                    tag_df = df[df['RequirementName'] == selected_tag]
-                    status_counts = tag_df['Status'].value_counts()
-                    total = status_counts.sum()
-
-                    # Pie chart
-                    fig1, ax1 = plt.subplots()
-                    ax1.pie(
-                        status_counts,
-                        labels=status_counts.index,
-                        autopct='%1.1f%%',
-                        colors=['lightgreen', 'lightcoral', 'orange', 'gold', 'lightblue']
+        if prompt:
+            with st.spinner("🤖 Thinking..."):
+                try:
+                    # --- OpenRouter LLM via PandasAI ---
+                    llm = OpenAI(
+                        api_token="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",  # 🔑 Replace this with your OpenRouter API key
+                        api_base="https://openrouter.ai/api/v1",
+                        model="mistralai/mistral-7b-instruct"  # ✅ Fast, free model
                     )
-                    ax1.axis('equal')
-                    pie_buf = BytesIO()
-                    plt.savefig(pie_buf, format='png')
-                    st.pyplot(fig1)
-                    plt.close(fig1)
 
-                    # Bar chart
-                    fig2, ax2 = plt.subplots()
-                    ax2.bar(
-                        status_counts.index,
-                        status_counts.values,
-                        color=['lightgreen' if s.lower() == 'passed' else 'lightcoral' for s in status_counts.index]
-                    )
-                    ax2.set_ylabel("Count")
-                    ax2.set_xlabel("Status")
-                    ax2.set_title("Status Count")
-                    bar_buf = BytesIO()
-                    plt.savefig(bar_buf, format='png')
-                    st.pyplot(fig2)
-                    plt.close(fig2)
+                    sdf = SmartDataframe(df, config={"llm": llm, "enable_cache": False})
 
-                    # Summary Table
-                    summary_table_df = pd.DataFrame({
-                        "Status": status_counts.index,
-                        "Count": status_counts.values,
-                        "Percentage": [f"{(count / total) * 100:.2f}%" for count in status_counts.values]
-                    })
-                    st.table(summary_table_df)
+                    # --- Get response ---
+                    result = sdf.chat(prompt)
 
-                    # Defect Summary
-                    defect_statuses = ["Failed", "Blocked", "Not Completed", "Error"]
-                    defect_df = tag_df[tag_df['Status'].isin(defect_statuses)]
-                    defect_table_df = pd.DataFrame()
-
-                    if not defect_df.empty:
-                        st.markdown("### 🔴 Defect Summary")
-                        defect_counts = defect_df['Status'].value_counts()
-                        defect_table_df = pd.DataFrame({
-                            "Defect Status": defect_counts.index,
-                            "Count": defect_counts.values,
-                            "Percentage": [f"{(count / total) * 100:.2f}%" for count in defect_counts.values]
-                        })
-                        st.table(defect_table_df)
+                    # --- Show response ---
+                    if isinstance(result, pd.DataFrame):
+                        st.dataframe(result)
+                    elif isinstance(result, plt.Figure):
+                        st.pyplot(result)
                     else:
-                        st.success("✅ No defects found in this tag.")
-
-                    # Save to PDF
-                    pdf_buf = save_pdf(selected_tag, status_counts, total, summary_table_df, defect_table_df, pie_buf, bar_buf)
-                    pdf_files.append((f"{selected_tag}.pdf", pdf_buf))
-
-                # Zip all PDFs
-                zip_buf = BytesIO()
-                with zipfile.ZipFile(zip_buf, "w") as zipf:
-                    for filename, filedata in pdf_files:
-                        zipf.writestr(filename, filedata.getvalue())
-                zip_buf.seek(0)
-
-                st.download_button(
-                    label="📥 Download All Summaries as ZIP",
-                    data=zip_buf,
-                    file_name="Test_Summaries.zip",
-                    mime="application/zip"
-                )
-            else:
-                st.info("Please select at least one tag to view results.")
+                        st.markdown(f"**💡 Answer:** {result}")
+                except Exception as e:
+                    st.error(f"⚠️ Agent failed: {e}")
 else:
-    st.info("📤 Please upload an Excel file with a 'Test Results' sheet.")
-
+    st.info("Please upload an Excel file with a 'Test Results' sheet.")
 
