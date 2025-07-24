@@ -3,5 +3,5 @@ pandas
 matplotlib
 #seaborn
 openpyxl
-#reportlab
+reportlab
 #pandasai>=2.0.0
